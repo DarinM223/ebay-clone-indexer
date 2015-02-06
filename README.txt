@@ -1,6 +1,8 @@
-This example contains a simple utility class to simplify opening database
-connections in Java applications, such as the one you will write to build
-your Lucene index. 
+Name: Darin Minamoto
+UID: 704140102
 
-To build and run the sample code, use the "run" ant target inside
-the directory with build.xml by typing "ant run".
+Name: Kevin Tong
+UID: 704161137
+
+---------------------------------------------------------------------------------------
+

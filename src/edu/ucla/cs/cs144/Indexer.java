@@ -33,11 +33,11 @@ public class Indexer {
         Connection conn = null;
 
         // create a connection to the database to retrieve Items from MySQL
-	try {
-	    conn = DbManager.getConnection(true);
-	} catch (SQLException ex) {
-	    System.out.println(ex);
-	}
+	    try {
+	        conn = DbManager.getConnection(true);
+	    } catch (SQLException ex) {
+	        System.out.println(ex);
+	    }
 
 
 	/*
@@ -61,11 +61,11 @@ public class Indexer {
 
 
         // close the database connection
-	try {
-	    conn.close();
-	} catch (SQLException ex) {
-	    System.out.println(ex);
-	}
+	    try {
+	        conn.close();
+	    } catch (SQLException ex) {
+	        System.out.println(ex);
+	    }
     }    
 
     public static void main(String args[]) {
