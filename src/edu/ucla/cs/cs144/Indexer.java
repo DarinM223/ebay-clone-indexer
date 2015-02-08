@@ -27,39 +27,65 @@ public class Indexer {
     /** Creates a new instance of Indexer */
     public Indexer() {
     }
+
+    IndexWriter indexWriter = null;
+
+    public IndexWriter getIndexWriter() throws IOException {
+        if (indexWriter == null) {
+            Directory indexDir = FSDirectory.open(new File("/var/lib/lucene/"));
+            IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_4_10_2, new StandardAnalyzer());
+            config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
+            indexWriter = new IndexWriter(indexDir, config);
+        }
+
+        return indexWriter;
+   }
+
+    public void closeIndexWriter() throws IOException {
+        if (indexWriter != null) {
+            indexWriter.close();
+        }
+   }   
  
-    public void rebuildIndexes() {
-        Connection conn = null;
-        IndexWriter iw = null;
+    public void rebuildIndexes() throws SQLException, IOException {
+        Connection conn = null;        
 
         // create a connection to the database to retrieve Items from MySQL
-	    try {
-	        conn = DbManager.getConnection(true);
-	    } catch (SQLException ex) {
-	        System.out.println(ex);
-	    }
+	    conn = DbManager.getConnection(true);
 
-        //create lucene indexwriter
-        try {
-            iw = new IndexWriter(System.getenv("LUCENE_INDEX"),
-                new StandardAnalyzer(), true);
-        }
-        catch (IOException e) {
-            System.out.println(ex);
-        }
 
-        
+        //erase existing index
+        getIndexWriter();
+
+        //query the database
+        Statement statement = conn.createStatement();
+
+        String query = "SELECT Item.ItemID, Item.Name, Item.Description, Categories.Categories "
+                        + "FROM ( "
+                            + "SELECT ItemID "
+                            + "FROM ItemCategory "
+                            + "GROUP BY ItemID) AS Categories"
+                        + "INNER JOIN Item "
+                        + "ON Item.ItemID = Categories.ItemID ";
+
+        //get the goods
+        ResultSet items = statement.executeQuery(query);
+
+        //close index writer
+        closeIndexWriter();
 
         // close the database connection
-	    try {
-	        conn.close();
-	    } catch (SQLException ex) {
-	        System.out.println(ex);
-	    }
+	    conn.close();
+
     }    
 
     public static void main(String args[]) {
         Indexer idx = new Indexer();
-        idx.rebuildIndexes();
+        try {
+            idx.rebuildIndexes();
+        }
+        catch (Exception e) {
+            System.out.prinln(e);
+        }
     }   
 }
