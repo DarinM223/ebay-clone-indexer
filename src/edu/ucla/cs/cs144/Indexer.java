@@ -32,7 +32,7 @@ public class Indexer {
 
     public IndexWriter getIndexWriter() throws IOException {
         if (indexWriter == null) {
-            Directory indexDir = FSDirectory.open(new File("/var/lib/lucene/"));
+            Directory indexDir = FSDirectory.open(new File("/var/lib/lucene/ebay/"));
             IndexWriterConfig config = new IndexWriterConfig(Version.LUCENE_4_10_2, new StandardAnalyzer());
             config.setOpenMode(IndexWriterConfig.OpenMode.CREATE);
             indexWriter = new IndexWriter(indexDir, config);
@@ -41,14 +41,14 @@ public class Indexer {
         return indexWriter;
    }
 
-    public void indexItem (int id, String name, String description, String categories) throws IOException {
+    public void indexItem (int id, String name, String description, String category) throws IOException {
         IndexWriter iw = getIndexWriter();
         Document doc = new Document();
 
-        doc.add(new StringField("id", id, Field.Store.YES));
+        doc.add(new StringField("id", Integer.toString(id), Field.Store.YES));
         doc.add(new StringField("name", name, Field.Store.YES));
-        doc.add(new StringField("description", description, Field.Store.YES));
-        doc.add(new TextField("categories", categories, Field.Store.NO));
+        doc.add(new TextField("description", description, Field.Store.NO));
+        doc.add(new StringField("category", category, Field.Store.YES));
         
         iw.addDocument(doc);
     }
@@ -71,21 +71,18 @@ public class Indexer {
         //query the database
         Statement statement = conn.createStatement();
 
-        String query = "SELECT Item.ItemID, Item.Name, Item.Description, Categories.Categories "
-                        + "FROM ( "
-                            + "SELECT ItemID "
-                            + "FROM ItemCategory "
-                            + "GROUP BY ItemID) AS Categories "
-                        + "INNER JOIN Item "
-                        + "ON Item.ItemID = Categories.ItemID";
+        String query = "SELECT Item.ItemID, Item.Name, Item.Description, ItemCategory.Category "
+                        + "FROM Item "
+                        + "INNER JOIN ItemCategory "
+                        + "ON Item.ItemID = ItemCategory.ItemID";
 
         //get the goods
         ResultSet items = statement.executeQuery(query);
 
         //index each item
         while (items.next()) {
-            indexItem(items.getInt("ItemID"), items.getString("Name")
-                        items.getString("Description"), items.getString("Categories"));
+            indexItem(items.getInt("ItemID"), items.getString("Name"),
+                        items.getString("Description"), items.getString("Category"));
         }
 
         //close index writer
@@ -102,7 +99,7 @@ public class Indexer {
             idx.rebuildIndexes();
         }
         catch (Exception e) {
-            System.out.prinln(e);
+            System.out.println(e);
         }
     }   
 }
