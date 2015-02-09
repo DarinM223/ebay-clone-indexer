@@ -49,6 +49,9 @@ public class Indexer {
         doc.add(new StringField("name", name, Field.Store.YES));
         doc.add(new TextField("description", description, Field.Store.NO));
         doc.add(new StringField("category", category, Field.Store.YES));
+
+        String contentString = name + " " + category + " " + description;
+        doc.add(new TextField("content", contentString, Field.Store.NO));
         
         iw.addDocument(doc);
     }
