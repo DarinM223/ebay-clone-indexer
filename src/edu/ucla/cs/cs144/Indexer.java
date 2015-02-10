@@ -41,16 +41,16 @@ public class Indexer {
         return indexWriter;
    }
 
-    public void indexItem (int id, String name, String description, String category) throws IOException {
+    public void indexItem (int id, String name, String description, String categories) throws IOException {
         IndexWriter iw = getIndexWriter();
         Document doc = new Document();
 
         doc.add(new StringField("id", Integer.toString(id), Field.Store.YES));
         doc.add(new StringField("name", name, Field.Store.YES));
         doc.add(new TextField("description", description, Field.Store.NO));
-        doc.add(new StringField("category", category, Field.Store.YES));
+        doc.add(new StringField("categories", categories, Field.Store.YES));
 
-        String contentString = name + " " + category + " " + description;
+        String contentString = name + " " + categories + " " + description;
         doc.add(new TextField("content", contentString, Field.Store.NO));
         
         iw.addDocument(doc);
@@ -74,10 +74,13 @@ public class Indexer {
         //query the database
         Statement statement = conn.createStatement();
 
-        String query = "SELECT Item.ItemID, Item.Name, Item.Description, ItemCategory.Category "
-                        + "FROM Item "
-                        + "INNER JOIN ItemCategory "
-                        + "ON Item.ItemID = ItemCategory.ItemID";
+        String query = "SELECT Item.ItemID, Item.Name, Item.Description, IC.Categories "
+                        + "FROM ( "
+                            + "SELECT ItemID, group_concat(ItemCategory.Category SEPARATOR ' ') AS Categories "
+                            + "FROM ItemCategory "
+                            + "GROUP BY ItemID) AS IC "
+                        + "INNER JOIN Item "
+                        + "ON Item.ItemID = IC.ItemID";
 
         //get the goods
         ResultSet items = statement.executeQuery(query);
@@ -85,7 +88,7 @@ public class Indexer {
         //index each item
         while (items.next()) {
             indexItem(items.getInt("ItemID"), items.getString("Name"),
-                        items.getString("Description"), items.getString("Category"));
+                        items.getString("Description"), items.getString("Categories"));
         }
 
         //close index writer
