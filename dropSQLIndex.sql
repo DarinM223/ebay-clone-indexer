@@ -1,2 +1,2 @@
-DROP INDEX CoordIndex ON ItemLocation;
+DROP INDEX sp_index ON ItemLocation;
 DROP TABLE IF EXISTS ItemLocation;
