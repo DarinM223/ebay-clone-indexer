@@ -3,8 +3,8 @@ CREATE TABLE ItemLocation(
   Coord GEOMETRY NOT NULL
 ) ENGINE=MyISAM;
 
-INSERT INTO ItemLocation(ItemID, Coord) 
-	SELECT ItemID, POINT(Latitude, Longitude) 
+INSERT INTO ItemLocation(ItemID, Coord)	 
+	SELECT ItemID, GeomFromText(CONCAT('Point(', Latitude, ' ',  Longitude, ')'))
 	FROM Item
 	WHERE Latitude IS NOT NULL AND Longitude IS NOT NULL;
 
